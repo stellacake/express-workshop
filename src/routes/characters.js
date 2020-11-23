@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const connection = require("../config");
 
-router.get("/", (res, req) => {
+router.get("/", (req, res) => {
 	connection.query("SELECT * FROM character_list", (err, results) => {
 		if (err) {
 			res.status(500).send("error retrieving your data");
@@ -12,45 +12,31 @@ router.get("/", (res, req) => {
 	});
 });
 
-router.get("/", (res, req) => {
-	let sql = "SELECT * FROM character_list";
-	let sqlValues = [];
-	if (req.params.first) {
-		sql += " WHERE firstname=?";
-		sqlValues.push(req.params.firstname);
-	} else if (req.params.lastname) {
-		sql += " WHERE lastname=?";
-		sqlValues.push(req.params.lastname);
-	} else if (req.params.woman) {
-		sql += " WHERE woman=?";
-		sqlValues.push(req.params.woman);
-	} else if (req.params.birthday) {
-		sql += " WHERE birthday=?";
-		sqlValues.push(req.params.birthday);
-	} else if (req.params.id) {
-		sql += " WHERE id=?";
-		sqlValues.push(req.params.id);
+router.get("/:field", (req, res) => {
+	let sql = "";
+	const sqlFields = ["id", "firstname", "lastname", "woman", "birthday"];
+	if (sqlFields.includes(req.params.field)) {
+		sql = `SELECT ${req.params.field} FROM character_list ORDER BY ${req.params.field}`;
 	}
-	connection.query(sql, sqlValues, (err, results) => {
+	connection.query(sql, (err, results) => {
 		if (err) {
 			res.status(500).send("Error retrieving data");
 		} else if (results.length == 0 || results == undefined) {
-			res.status(404).send("Character not found");
+			res.status(404).send("data not found");
 		} else {
 			res.status(200).json(results);
 		}
 	});
 });
 
-router.get("/firstname", (res, req) => {
+router.get("/firstname/e", (req, res) => {
 	connection.query(
-		"SELECT * FROM character_list WHERE firstname LIKE '%e%' ",
-		[req.query.firstname],
+		"SELECT * FROM character_list WHERE firstname LIKE '%e%'",
 		(err, results) => {
 			if (err) {
-				res.status(500).send(`Error retrieving ${req.params.firstname} data`);
+				res.status(500).send(`Error retrieving data`);
 			} else if (results.length == 0 || results == undefined) {
-				res.status(404).send(`${res.query.firstname} not found`);
+				res.status(404).send(`Data not found`);
 			} else {
 				res.status(200).json(results);
 			}
@@ -58,10 +44,9 @@ router.get("/firstname", (res, req) => {
 	);
 });
 
-router.get("/", (res, req) => {
+router.get("/lastname/g", (req, res) => {
 	connection.query(
 		"SELECT * FROM character_list WHERE lastname LIKE 'G%' ",
-		[req.query.lastname],
 		(err, results) => {
 			if (err) {
 				res.status(500).send(`Error retrieving ${req.query.lastname} data`);
@@ -74,10 +59,9 @@ router.get("/", (res, req) => {
 	);
 });
 
-router.get("/", (res, req) => {
+router.get("/character/birthday", (req, res) => {
 	connection.query(
 		"SELECT * FROM character_list WHERE birthday >= '1969-01-01' ",
-		[req.query.birthday],
 		(err, results) => {
 			if (err) {
 				res.status(500).send(`Error retrieving ${req.query.birthday} data`);
@@ -90,15 +74,14 @@ router.get("/", (res, req) => {
 	);
 });
 
-router.get("/:birthday", (res, req) => {
+router.get("/list/birthdays", (req, res) => {
 	connection.query(
 		"SELECT * FROM character_list ORDER BY birthday",
-		[req.params.birthday],
 		(err, results) => {
 			if (err) {
-				res.status(500).send(`Error retrieving ${req.params.birthday} data`);
+				res.status(500).send(`Error retrieving data`);
 			} else if (results.length == 0 || results == undefined) {
-				res.status(404).send(`${res.params.birthday} not found`);
+				res.status(404).send(`$not found`);
 			} else {
 				res.status(200).json(results);
 			}
@@ -122,7 +105,7 @@ router.post("/", (req, res) => {
 	);
 });
 
-router.put("/:id", (req, res) => {
+router.put("/character/:id", (req, res) => {
 	connection.query(
 		"UPDATE character_list SET ? WHERE id=?",
 		[req.body, req.params.id],
@@ -150,7 +133,7 @@ router.put("/woman/:id", (req, res) => {
 	);
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/character/:id", (req, res) => {
 	connection.query(
 		"DELETE * FROM character_list WHERE id=?",
 		[req.params.id],
@@ -164,7 +147,7 @@ router.delete("/:id", (req, res) => {
 	);
 });
 
-router.delete("/:woman", (req, res) => {
+router.delete("/woman/", (req, res) => {
 	connection.query(
 		"DELETE * FROM character_list WHERE woman=0",
 		[req.params.id],
